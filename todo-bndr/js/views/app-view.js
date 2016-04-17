@@ -19,7 +19,7 @@ var AppView = (function(){
 		this.dom = {};
 		this.dom.add = document.getElementById("add");
 		this.dom.input = document.getElementById("input");
-		this.dom.list = document.getElementById("list");
+		this.dom.items = document.getElementById("items");
 		this.dom.itemTmpl = document.getElementById("item-tmpl");
 	}
 	
@@ -40,7 +40,7 @@ var AppView = (function(){
 			.setModel([])
 			.bindElement(".name", "name");
 		this.model = this.bndr.getBoundModel();
-		this.bndr.attachTo(this.dom.list);
+		this.bndr.attachTo(this.dom.items);
 	}
 	
 	function init(){

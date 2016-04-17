@@ -12,3 +12,5 @@ gulp.task("react", function(){
 gulp.task("watch", function(){
 	gulp.watch("../web/jsx/**/*.jsx", ["react"]);
 });
+
+gulp.task("default", ["react"]);

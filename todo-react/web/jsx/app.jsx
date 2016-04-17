@@ -1,4 +1,3 @@
-let start = performance.now();
 let i = 0;
 
 var TodoList = React.createClass({
@@ -6,7 +5,7 @@ var TodoList = React.createClass({
     var createItem = function(item) {
       return <li key={item.id}>{item.text}</li>;
     };
-    return <ul>{this.props.items.map(createItem)}</ul>;
+    return <ul id="items">{this.props.items.map(createItem)}</ul>;
   }
 });
 var TodoApp = React.createClass({
@@ -34,9 +33,13 @@ var TodoApp = React.createClass({
     );
   }
 });
-ReactDOM.render(
-  <TodoApp />,
-  document.getElementById('content')
-);
-console.log("first-render", performance.now() - start);
-PerformanceTests.create();
+
+let start = performance.now();
+document.addEventListener("DOMContentLoaded", function(){
+	ReactDOM.render(
+	  <TodoApp />,
+	  document.getElementById('content')
+	);
+	console.log("first-render", performance.now() - start);
+	PerformanceTests.create();
+});

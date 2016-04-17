@@ -1,7 +1,13 @@
 let PerformanceTests = (function(){
 	
-	function create(){
+	const defaults = {
+		times : null,
+		test : null
+	};
+	
+	function create(options){
 		let performanceTests = {};
+		performanceTests.options = Object.assign({}, defaults, options);
 		bind(performanceTests);
 		performanceTests.init();
 		return performanceTests;
@@ -15,8 +21,9 @@ let PerformanceTests = (function(){
 	
 	function cacheDom(){
 		this.dom = {};
-		this.dom.add = document.getElementById("add");
-		this.dom.input = document.getElementById("input");
+		this.dom.add = document.querySelector("#add");
+		this.dom.input = document.querySelector("#input");
+		this.dom.list = document.querySelector("#items");
 	}
 
 	function fireEvent(element,event){
@@ -26,22 +33,57 @@ let PerformanceTests = (function(){
 	}
 	
 	function addTest(i){
-		input.value = `test${i}`;
-		fireEvent(input, "input");
-		fireEvent(add, "click");
+		return new Promise((resolve, reject) => {
+			let mutationObserver = new MutationObserver((mutations) => {
+				mutations.forEach((mutationRecord) => {
+					if(mutationRecord.target.childNodes.length > i){
+						mutationObserver.disconnect();
+						resolve();
+					}
+				});
+			});
+			mutationObserver.observe(this.dom.list, { childList : true });
+
+			this.dom.input.value = `test${i}`;
+			fireEvent(this.dom.input, "input");
+			setTimeout(() => {
+				fireEvent(this.dom.add, "click");
+			},0);
+		});
 	}
 	
-	function startTest(test){
-		var start = performance.now();
-		for(let i = 0; i < 1000; i++){
-			test(i);
+	function* getTestSequence(test, times){
+		let i = 0;
+		while(i < times){
+			yield test(i++);
 		}
-		console.log(performance.now() - start);
+	}
+	
+	function startTest(test, times){
+		let start = performance.now();
+		let sequence = getTestSequence(test, times);
+		let result;
+
+		function iterate(){
+			result = sequence.next();
+			if(!result.done){
+				result.value.then(iterate);
+			}else{
+				console.log("test finished:", performance.now() - start)
+			}
+		}
+		iterate();
 	}
 	
 	function init(){
+		let query = new URLSearchParams(window.location.search.substr(1));
+		this.options.times = this.options.times || parseInt(query.get("times"));
+		this.options.test = this.options.test || parseInt(query.get("test"));
 		this.cacheDom();
-		startTest(this.addTest);
+		
+		if(this.options.test === 1){
+			startTest(this.addTest, this.options.times);
+		}
 	}
 	
 	return {
